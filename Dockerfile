@@ -1,11 +1,11 @@
-FROM mcr.microsoft.com/azure-functions/node:4-node18
+FROM mcr.microsoft.com/azure-functions/node:4-node20-slim
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
 COPY . /home/site/wwwroot
 ENV ASYNC_API_SCHEMA_FILE=/home/site/wwwroot/consumeData/assets/asyncapi.yaml
-RUN ls -al
+
 RUN cd /home/site/wwwroot && \
     npm install && \
     npm run build
