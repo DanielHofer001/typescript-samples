@@ -1,38 +1,32 @@
+FROM node:20-alpine3.19 AS builder
+
+ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+
+WORKDIR /home/site/wwwroot
+
+# Copy package.json and package-lock.json for dependency installation
+COPY package*.json ./
+
+RUN npm install
+
+# Copy the rest of the source files
+COPY . .
+
+# Run the build process
+RUN npm run build
+
+
+# Multi-stage build for better performance
 FROM mcr.microsoft.com/azure-functions/node:4-node20-slim
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
-COPY . /home/site/wwwroot
-ENV ASYNC_API_SCHEMA_FILE=/home/site/wwwroot/consumeData/assets/asyncapi.yaml
+WORKDIR /home/site/wwwroot
 
-RUN cd /home/site/wwwroot && \
-    npm install && \
-    npm run build
-
-# # To enable ssh & remote debugging on app service change the base image to the one below
-# # FROM mcr.microsoft.com/azure-functions/node:3.0-appservice
-# FROM node:20-alpine3.19 as builder
-
-# ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true
-
-# WORKDIR /usr/workspace
-
-# COPY . ./
-# COPY package*.json ./
-
-# RUN npm ci && \
-#     npm run build
-
-
-# # multi stage build for better performance
-# FROM mcr.microsoft.com/azure-functions/node:4-node20-slim
-
-# ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-#     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
-
-# WORKDIR /home/site/wwwroot
-
-# COPY --from=builder /usr/workspace/node_modules/ ./node_modules
-# COPY --from=builder /usr/workspace/dist/src ./
-
+# Copy the necessary files and directories from the builder stage
+COPY --from=builder /home/site/wwwroot/node_modules ./node_modules
+COPY --from=builder /home/site/wwwroot/dist ./dist
+COPY --from=builder /home/site/wwwroot/package.json ./
+COPY --from=builder /home/site/wwwroot/host.json ./
