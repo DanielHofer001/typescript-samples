@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  roass_status_updater:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    restart: on-failure
+    environment:
+      AzureWebJobsStorage: ${AzureWebJobsStorage}
+      AZURE_FUNCTIONS_ENVIRONMENT: Development
+
+    ports:
+      - 4100:4010 
+
+ 
+  
+
+ 
